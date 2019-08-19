@@ -158,7 +158,16 @@
             "label": "Add project name to publish path",
             "defaultValue": "true",
             "required": false,
-            "helpMarkDown": "If true, folders created by the publish command will have project file name prefixed to their folder names when output path is specified explicitly in arguments. This is useful if you want to publish multiple projects to the same folder."
+            "helpMarkDown": "If true, folders created by the publish command will have project folder name prefixed to their folder names when output path is specified explicitly in arguments. This is useful if you want to publish multiple projects to the same folder."
+        },
+        {
+            "name": "enhancedOutputPathGeneration",
+            "type": "boolean",
+            "visibleRule": "modifyOutputPath = true",
+            "label": "Ensure project output uniqueness",
+            "defaultValue": "false",
+            "required": false,
+            "helpMarkDown": "Each project will be published to a folder with a unique prefix to ensure that projects with identical names, but in different directory structures, do not overwrite each other."
         },
         {
             "name": "selectOrConfig",

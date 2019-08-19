@@ -20,6 +20,8 @@ export class dotNetExe {
     private outputArgumentIndex: number = 0;
     private workingDirectory: string;
     private testRunSystem: string = "VSTS - dotnet";
+    private modifyOutputPath: boolean;
+    private enhancedOutputPathGeneration: boolean;
 
     constructor() {
         this.command = tl.getInput("command");
@@ -28,6 +30,8 @@ export class dotNetExe {
         this.publishWebProjects = tl.getBoolInput("publishWebProjects", false);
         this.zipAfterPublish = tl.getBoolInput("zipAfterPublish", false);
         this.workingDirectory = tl.getPathInput("workingDirectory", false);
+        this.modifyOutputPath = tl.getBoolInput("modifyOutputPath", false);
+        this.enhancedOutputPathGeneration = tl.getBoolInput("enhancedOutputPathGeneration", false);
     }
 
     public async execute() {
@@ -97,8 +101,8 @@ export class dotNetExe {
                 dotnet.arg(projectFile);
             }
             var dotnetArguments = this.arguments;
-            if (this.isPublishCommand() && this.outputArgument && tl.getBoolInput("modifyOutputPath")) {
-                var output = dotNetExe.getModifiedOutputForProjectFile(this.outputArgument, projectFile);
+            if (this.isPublishCommand() && this.outputArgument && this.modifyOutputPath) {
+                var output = dotNetExe.getModifiedOutputForProjectFile(this.outputArgument, projectFile, this.enhancedOutputPathGeneration);
                 dotnetArguments = this.replaceOutputArgument(output);
             }
             dotnet.line(dotnetArguments);
@@ -184,7 +188,7 @@ export class dotNetExe {
         for (const fileIndex of Object.keys(matchingTestResultsFiles)) {
             const resultFile = matchingTestResultsFiles[fileIndex];
             tl.rmRF(resultFile)
-            tl.debug("Successfuly removed: " + resultFile);
+            tl.debug("Successfully removed: " + resultFile);
         }
     }
 
@@ -199,8 +203,8 @@ export class dotNetExe {
             var outputSource: string = "";
             var moveZipToOutputSource = false;
             if (this.outputArgument) {
-                if (tl.getBoolInput("modifyOutputPath") && projectFile) {
-                    outputSource = dotNetExe.getModifiedOutputForProjectFile(this.outputArgument, projectFile);
+                if (this.modifyOutputPath && projectFile) {
+                    outputSource = dotNetExe.getModifiedOutputForProjectFile(this.outputArgument, projectFile, this.enhancedOutputPathGeneration);
                 } else {
                     outputSource = this.outputArgument;
                     moveZipToOutputSource = true;
@@ -268,7 +272,7 @@ export class dotNetExe {
         var escaped = false;
         var arg = '';
         var i = 0;
-        var append = function (c) {
+        var append = function (c: string) {
             // we only escape double quotes.
             if (escaped && c !== '"') {
                 arg += '\\';
@@ -336,7 +340,7 @@ export class dotNetExe {
         var resolvedProjectFiles: string[] = [];
 
         if (searchWebProjects) {
-            resolvedProjectFiles = projectFiles.filter(function (file, index, files): boolean {
+            resolvedProjectFiles = projectFiles.filter(function (file, _index, _files): boolean {
                 var directory = path.dirname(file);
                 return tl.exist(path.join(directory, "web.config"))
                     || tl.exist(path.join(directory, "wwwroot"));
@@ -385,8 +389,13 @@ export class dotNetExe {
         return this.command === "run";
     }
 
-    private static getModifiedOutputForProjectFile(outputBase: string, projectFile: string): string {
-        return path.join(outputBase, path.basename(path.dirname(projectFile)));
+    private static getModifiedOutputForProjectFile(outputBase: string, projectFilePath: string, enhancedOutputPathGeneration: boolean): string {
+        if (enhancedOutputPathGeneration) {
+            let parsedProjectFile = path.parse(projectFilePath);
+            if (parsedProjectFile.dir === "") return outputBase;
+            return path.join(outputBase, `${parsedProjectFile.dir}-${parsedProjectFile.name}`);
+        }
+        return path.join(outputBase, path.basename(path.dirname(projectFilePath)));
     }
 }
 

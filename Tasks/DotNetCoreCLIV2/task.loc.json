@@ -161,6 +161,15 @@
       "helpMarkDown": "ms-resource:loc.input.help.modifyOutputPath"
     },
     {
+      "name": "enhancedOutputPathGeneration",
+      "type": "boolean",
+      "visibleRule": "modifyOutputPath = true",
+      "label": "ms-resource:loc.input.label.enhancedOutputPathGeneration",
+      "defaultValue": "false",
+      "required": false,
+      "helpMarkDown": "ms-resource:loc.input.help.enhancedOutputPathGeneration"
+    },
+    {
       "name": "selectOrConfig",
       "aliases": [
         "feedsToUse"

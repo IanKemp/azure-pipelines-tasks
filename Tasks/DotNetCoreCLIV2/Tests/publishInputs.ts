@@ -6,10 +6,13 @@ let taskPath = path.join(__dirname, '..', 'dotnetcore.js');
 let tmr: tmrm.TaskMockRunner = new tmrm.TaskMockRunner(taskPath);
 
 tmr.setInput('command', "publish");
+tmr.setInput('arguments', process.env["__arguments__"] ? process.env["__arguments__"] : "");
 tmr.setInput('projects', process.env["__projects__"]);
 tmr.setInput('publishWebProjects', process.env["__publishWebProjects__"] && process.env["__publishWebProjects__"] == "true" ? "true" : "false");
-tmr.setInput('arguments', process.env["__arguments__"] ? process.env["__arguments__"] : "");
-tmr.setInput('modifyOutputPath', process.env["modifyOutput"] == "false" ? "false" : "true");
+tmr.setInput('modifyOutputPath', process.env["modifyOutput"] == "true" ? "true" : "false");
+tmr.setInput('enhancedOutputPathGeneration', process.env["__enhancedOutputPathGeneration__"] == "true" ? "true" : "false");
+tmr.setInput('zipAfterPublish', process.env["zipAfterPublish"] ? process.env["zipAfterPublish"] : "false");
+tmr.setInput('workingDirectory', process.env["workingDirectory"] ? process.env["workingDirectory"] : "");
 
 let a: ma.TaskLibAnswers = <ma.TaskLibAnswers>{
     "which": { "dotnet": "dotnet" },
@@ -44,24 +47,34 @@ let a: ma.TaskLibAnswers = <ma.TaskLibAnswers>{
             "stdout": "published",
             "stderr": ""
         },
-        "dotnet publish web3/project.json --configuration release --output /usr/out/web3": {
-            "code": 0,
-            "stdout": "published",
-            "stderr": ""
-        },
-        "dotnet publish lib2/project.json --configuration release --output /usr/out/lib2": {
-            "code": 0,
-            "stdout": "published",
-            "stderr": ""
-        },
          "dotnet publish web3/project.json --configuration release --output /usr/out": {
             "code": 0,
-            "stdout": "published web3 without adding project name to path\n",
+            "stdout": "published web3/project.json with no path modification\n",
             "stderr": ""
         },
         "dotnet publish lib2/project.json --configuration release --output /usr/out": {
             "code": 0,
-            "stdout": "published lib2 without adding project name to path\n",
+            "stdout": "published lib2/project.json with no path modification\n",
+            "stderr": ""
+        },
+        "dotnet publish web3/project.json --configuration release --output /usr/out/web3": {
+            "code": 0,
+            "stdout": "published web3/project.json with modifyOutput = true\n",
+            "stderr": ""
+        },
+        "dotnet publish lib2/project.json --configuration release --output /usr/out/lib2": {
+            "code": 0,
+            "stdout": "published lib2/project.json with modifyOutput = true\n",
+            "stderr": ""
+        },
+        "dotnet publish web3/project.json --configuration release --output /usr/out/web3-project": {
+            "code": 0,
+            "stdout": "published web3/project.json with modifyOutput = true and enhancedOutputPathGeneration = true\n",
+            "stderr": ""
+        },
+        "dotnet publish lib2/project.json --configuration release --output /usr/out/lib2-project": {
+            "code": 0,
+            "stdout": "published lib2/project.json with modifyOutput = true and enhancedOutputPathGeneration = true\n",
             "stderr": ""
         },
         "dotnet publish --configuration release --output /usr/out": {
@@ -74,16 +87,18 @@ let a: ma.TaskLibAnswers = <ma.TaskLibAnswers>{
             "stdout": "published",
             "stderr": ""
         },
-        "dotnet publish web/project.csproj --configuration release --output /usr/out/web": {
+        "dotnet publish web/project.csproj --configuration release --output /usr/out": {
             "code": 0,
             "stdout": "published",
             "stderr": ""
         },
+        /*
         "dotnet publish lib/project.csproj --configuration release --output /usr/out": {
             "code": 0,
             "stdout": "published",
             "stderr": ""
         },
+        */
         "dotnet publish dummy/project.json": {
             "code": 1,
             "stdout": "not published",
